@@ -36,9 +36,11 @@ func Short(w http.ResponseWriter, r *http.Request) {
 		UnicStr := strconv.Itoa(Unic)
 		Urls[UnicStr] = urlToShort
 
+		responseUrl := "http://" + r.Host + r.URL.String() + "?id=" + UnicStr
+
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(UnicStr))
+		w.Write([]byte(responseUrl))
 		fmt.Fprintln(w)
 
 	case http.MethodGet:
