@@ -36,12 +36,12 @@ func Short(w http.ResponseWriter, r *http.Request) {
 		UnicStr := strconv.Itoa(Unic)
 		Urls[UnicStr] = urlToShort
 
-		responseUrl := "http://" + r.Host + r.URL.String() + UnicStr
+		responseURL := "http://" + r.Host + r.URL.String() + UnicStr
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(responseUrl))
-		fmt.Fprintln(w)
+		w.Write([]byte(responseURL))
+		fmt.Fprint(w)
 
 	case http.MethodGet:
 
@@ -51,17 +51,17 @@ func Short(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		reternUrl, exists := Urls[id]
+		reternURL, exists := Urls[id]
 		if !exists {
 			http.Error(w, "'id' not found", http.StatusBadRequest)
 			return
 		}
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Add("Location", reternUrl)
+		w.Header().Add("Location", reternURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		w.Write([]byte(""))
-		fmt.Fprintln(w)
+		fmt.Fprint(w)
 
 	default:
 
