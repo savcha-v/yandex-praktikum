@@ -13,7 +13,7 @@ var Urls map[string]string = map[string]string{
 }
 var Unic int
 
-// Short — обработчик запроса.
+// Short — обработчик запросов.
 func Short(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
