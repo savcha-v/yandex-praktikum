@@ -137,6 +137,7 @@ func TestGetShort(t *testing.T) {
 				h := http.HandlerFunc(GetShort)
 				h.ServeHTTP(w, request)
 				result := w.Result()
+				defer result.Body.Close()
 				changeResult(t, result, tt.want)
 			})
 		}
@@ -158,6 +159,7 @@ func TestPostShort(t *testing.T) {
 				h := http.HandlerFunc(PostShort)
 				h.ServeHTTP(w, request)
 				result := w.Result()
+				defer result.Body.Close()
 				changeResult(t, result, tt.want)
 			})
 		}
