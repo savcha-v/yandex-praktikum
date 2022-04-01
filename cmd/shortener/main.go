@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	handlers "yandex-praktikum/cmd/shortener/handlers"
+	handlers "yandex-praktikum/internal/handlers"
 
 	"github.com/go-chi/chi/v5"
 )

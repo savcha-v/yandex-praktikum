@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	handlers "yandex-praktikum/cmd/shortener/handlers"
+	handlers "yandex-praktikum/internal/handlers"
 
 	"github.com/stretchr/testify/require"
 )
