@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"yandex-praktikum/cmd/shortener/handlerfuncs"
+	handlers "yandex-praktikum/cmd/shortener/handlers"
 
 	"github.com/stretchr/testify/require"
 )
@@ -136,7 +136,7 @@ func TestGetShort(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				request := httptest.NewRequest(tt.method, tt.request, tt.body)
 				w := httptest.NewRecorder()
-				h := http.HandlerFunc(handlerfuncs.GetShort)
+				h := http.HandlerFunc(handlers.GetShort)
 				h.ServeHTTP(w, request)
 				result := w.Result()
 				defer result.Body.Close()
@@ -158,7 +158,7 @@ func TestPostShort(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				request := httptest.NewRequest(tt.method, tt.request, tt.body)
 				w := httptest.NewRecorder()
-				h := http.HandlerFunc(handlerfuncs.PostShort)
+				h := http.HandlerFunc(handlers.PostShort)
 				h.ServeHTTP(w, request)
 				result := w.Result()
 				defer result.Body.Close()
