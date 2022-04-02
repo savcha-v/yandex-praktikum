@@ -4,13 +4,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
-)
 
-var Urls map[string]string = map[string]string{
-	"0": "",
-}
-var Unic int
+	store "yandex-praktikum/internal/store"
+)
 
 func PostShort(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -31,11 +27,9 @@ func PostShort(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Unic += 1
-	UnicStr := strconv.Itoa(Unic)
-	Urls[UnicStr] = urlToShort
+	id := store.GetID(urlToShort)
 
-	responseURL := "http://" + r.Host + r.URL.String() + "?id=" + UnicStr
+	responseURL := "http://" + r.Host + r.URL.String() + "?id=" + id
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
@@ -56,9 +50,9 @@ func GetShort(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reternURL, exists := Urls[id]
-	if !exists {
-		http.Error(w, "'id' not found", http.StatusBadRequest)
+	reternURL, err := store.GetURL(id)
+	if err != "" {
+		http.Error(w, err, http.StatusBadRequest)
 		return
 	}
 

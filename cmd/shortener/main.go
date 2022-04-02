@@ -16,8 +16,6 @@ func main() {
 		r.Post("/", handlers.PostShort)
 	})
 
-	delete(handlers.Urls, "0")
-
 	log.Fatal(http.ListenAndServe(":8080", r))
 
 }
