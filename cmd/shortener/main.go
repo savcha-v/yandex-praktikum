@@ -14,6 +14,7 @@ func main() {
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", handlers.GetShort)
 		r.Post("/", handlers.PostShort)
+		r.Post("/api/shorten", handlers.PostShorten)
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", r))
