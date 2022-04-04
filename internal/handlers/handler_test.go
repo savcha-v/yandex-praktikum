@@ -215,7 +215,7 @@ func TestPostGet(t *testing.T) {
 func TestPostShorten(t *testing.T) {
 
 	type bodyReqType struct {
-		Url string
+		URL string
 	}
 
 	type bodyResType struct {
@@ -237,7 +237,7 @@ func TestPostShorten(t *testing.T) {
 	}
 
 	bodyReq := bodyReqType{
-		Url: "https://quickref.me/golang",
+		URL: "https://quickref.me/golang",
 	}
 
 	bodyRes := bodyResType{
