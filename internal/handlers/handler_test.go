@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +27,7 @@ type TestStruct struct {
 }
 
 func TestPostShort(t *testing.T) {
+
 	tests := []TestStruct{
 		{
 			name:   "test endpoint DELETE",
@@ -236,12 +239,18 @@ func TestPostShorten(t *testing.T) {
 		want    wantType
 	}
 
+	var cfg Config
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	bodyReq := bodyReqType{
 		URL: "https://quickref.me/golang",
 	}
 
 	bodyRes := bodyResType{
-		Result: "http://example.com/?id=0",
+		Result: "http://example.com/" + cfg.BaseURL + "/?id=0",
 	}
 
 	tests := []testStruct{
