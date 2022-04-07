@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	handlers "yandex-praktikum/internal/handlers"
 
 	"github.com/caarlos0/env/v6"
@@ -15,7 +16,12 @@ type Config struct {
 	BaseURL       string `env:"BASE_URL"`
 }
 
-func createServer(port int, cfg Config) *http.Server {
+func createServer() *http.Server {
+
+	port := 8080
+	var cfg Config
+	env.Parse(&cfg)
+	port, _ = strconv.Atoi(cfg.ServerAddress)
 
 	r := chi.NewRouter()
 	r.Route("/", func(r chi.Router) {
@@ -34,31 +40,7 @@ func createServer(port int, cfg Config) *http.Server {
 
 func main() {
 
-	var cfg Config
-	err := env.Parse(&cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// wg := new(sync.WaitGroup)
-	// wg.Add(2)
-
-	// go func() {
-	server := createServer(8080, cfg)
+	server := createServer()
 	log.Fatal(server.ListenAndServe())
-	// 	wg.Done()
-	// }()
-
-	// go func() {
-	// 	port, err := strconv.Atoi(cfg.ServerAddress)
-	// 	if err != nil {
-	// 		log.Fatal()
-	// 	}
-	// 	server := createServer(port, cfg)
-	// 	log.Fatal(server.ListenAndServe())
-	// 	wg.Done()
-	// }()
-
-	// wg.Wait()
 
 }
