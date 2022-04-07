@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	handlers "yandex-praktikum/internal/handlers"
 
 	"github.com/caarlos0/env/v6"
@@ -21,7 +20,7 @@ func createServer() *http.Server {
 	port := 8080
 	var cfg Config
 	env.Parse(&cfg)
-	port, _ = strconv.Atoi(cfg.ServerAddress)
+	//port, _ = strconv.Atoi(cfg.ServerAddress)
 
 	r := chi.NewRouter()
 	r.Route("/", func(r chi.Router) {
