@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"sync"
 	handlers "yandex-praktikum/internal/handlers"
 
 	"github.com/caarlos0/env/v6"
@@ -42,25 +40,25 @@ func main() {
 		log.Fatal(err)
 	}
 
-	wg := new(sync.WaitGroup)
-	wg.Add(2)
+	// wg := new(sync.WaitGroup)
+	// wg.Add(2)
 
-	go func() {
-		server := createServer(8080, cfg)
-		log.Fatal(server.ListenAndServe())
-		wg.Done()
-	}()
+	// go func() {
+	server := createServer(8080, cfg)
+	log.Fatal(server.ListenAndServe())
+	// 	wg.Done()
+	// }()
 
-	go func() {
-		port, err := strconv.Atoi(cfg.ServerAddress)
-		if err != nil {
-			log.Fatal()
-		}
-		server := createServer(port, cfg)
-		log.Fatal(server.ListenAndServe())
-		wg.Done()
-	}()
+	// go func() {
+	// 	port, err := strconv.Atoi(cfg.ServerAddress)
+	// 	if err != nil {
+	// 		log.Fatal()
+	// 	}
+	// 	server := createServer(port, cfg)
+	// 	log.Fatal(server.ListenAndServe())
+	// 	wg.Done()
+	// }()
 
-	wg.Wait()
+	// wg.Wait()
 
 }
