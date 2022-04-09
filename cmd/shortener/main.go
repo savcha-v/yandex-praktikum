@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	handlers "yandex-praktikum/internal/handlers"
 
 	"github.com/caarlos0/env/v6"
@@ -12,7 +10,7 @@ import (
 )
 
 type Config struct {
-	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"8080"`
+	ServerAddress string `env:"SERVER_ADDRESS" envDefault:":8080"`
 	BaseURL       string `env:"BASE_URL"`
 }
 
@@ -23,7 +21,7 @@ func createServer() *http.Server {
 	if err != nil {
 		log.Fatal(err)
 	}
-	port, _ := strconv.Atoi(cfg.ServerAddress)
+	//port, _ := strconv.Atoi(cfg.ServerAddress)
 
 	r := chi.NewRouter()
 	r.Route("/", func(r chi.Router) {
@@ -33,7 +31,7 @@ func createServer() *http.Server {
 	})
 
 	server := http.Server{
-		Addr:    fmt.Sprintf(":%v", port),
+		Addr:    cfg.ServerAddress,
 		Handler: r,
 	}
 
