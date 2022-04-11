@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	handlers "yandex-praktikum/internal/handlers"
+	"yandex-praktikum/internal/store"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
@@ -21,7 +22,6 @@ func createServer() *http.Server {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//port, _ := strconv.Atoi(cfg.ServerAddress)
 
 	r := chi.NewRouter()
 	r.Route("/", func(r chi.Router) {
@@ -41,6 +41,7 @@ func createServer() *http.Server {
 func main() {
 
 	server := createServer()
+	store.InitStorage()
 	log.Fatal(server.ListenAndServe())
 
 }
