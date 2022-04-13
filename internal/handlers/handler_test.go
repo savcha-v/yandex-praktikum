@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"yandex-praktikum/internal/config"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/stretchr/testify/assert"
@@ -239,7 +240,7 @@ func TestPostShorten(t *testing.T) {
 		want    wantType
 	}
 
-	var cfg Config
+	var cfg config.Config
 	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)

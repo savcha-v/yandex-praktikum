@@ -6,8 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
-
-	"github.com/caarlos0/env"
+	config "yandex-praktikum/internal/config"
 )
 
 var FileName string
@@ -19,17 +18,10 @@ type UnitURL struct {
 
 var urls = make(map[int]UnitURL)
 
-type Config struct {
-	FileStor string `env:"FILE_STORAGE_PATH" envDefault:""`
-}
-
 func InitStorage() {
 
-	var cfg Config
-	if err := env.Parse(&cfg); err != nil {
-		log.Fatal(err)
-	}
-	FileName = cfg.FileStor
+	FileName = config.Cfg.FileStor
+
 	if FileName != "" {
 
 		file, err := os.OpenFile(FileName, os.O_RDONLY|os.O_CREATE, 0777)
@@ -56,12 +48,15 @@ func InitStorage() {
 	}
 }
 
-func GetID(urlToShort string) string {
+func GetShortURL(urlToShort string, host string) string {
 
-	nextID := getNextID()
+	nextID := len(urls)
+
+	shortURL := "http://" + host + "/" + config.Cfg.BaseURL + "/" + "?id=" + strconv.Itoa(nextID)
+
 	until := UnitURL{
 		Full:  urlToShort,
-		Short: "fff",
+		Short: shortURL,
 	}
 	urls[nextID] = until
 	//записать в файл
@@ -90,7 +85,7 @@ func GetID(urlToShort string) string {
 		}
 		writer.Flush()
 	}
-	return strconv.Itoa(nextID)
+	return shortURL
 
 }
 
@@ -107,8 +102,4 @@ func GetURL(idStr string) (url string, strErr string) {
 	}
 
 	return until.Full, ""
-}
-
-func getNextID() int {
-	return len(urls)
 }

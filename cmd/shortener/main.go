@@ -1,37 +1,29 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	config "yandex-praktikum/internal/config"
 	handlers "yandex-praktikum/internal/handlers"
 	"yandex-praktikum/internal/store"
 
-	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 )
 
-type Config struct {
-	ServerAddress string `env:"SERVER_ADDRESS" envDefault:":8080"`
-	BaseURL       string `env:"BASE_URL"`
-}
-
 func createServer() *http.Server {
 
-	var cfg Config
-	err := env.Parse(&cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	flag.Parse()
 
 	r := chi.NewRouter()
 	r.Route("/", func(r chi.Router) {
-		r.Get("/"+cfg.BaseURL+"/", handlers.GetShort)
+		r.Get("/"+config.Cfg.BaseURL+"/", handlers.GetShort)
 		r.Post("/", handlers.PostShort)
 		r.Post("/api/shorten", handlers.PostShorten)
 	})
 
 	server := http.Server{
-		Addr:    cfg.ServerAddress,
+		Addr:    config.Cfg.ServerAddress,
 		Handler: r,
 	}
 

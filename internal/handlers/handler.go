@@ -4,29 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	store "yandex-praktikum/internal/store"
-
-	"github.com/caarlos0/env/v6"
 )
-
-type Config struct {
-	BaseURL string `env:"BASE_URL"`
-}
-
-func getShortURL(urlToShort string, r *http.Request) string {
-	id := store.GetID(urlToShort)
-
-	var cfg Config
-	err := env.Parse(&cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return "http://" + r.Host + "/" + cfg.BaseURL + "/" + "?id=" + id
-}
 
 func PostShort(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -47,7 +28,7 @@ func PostShort(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responseURL := getShortURL(urlToShort, r)
+	responseURL := store.GetShortURL(urlToShort, r.Host)
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
@@ -84,7 +65,7 @@ func PostShorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responseURL := getShortURL(valueIn.URL, r)
+	responseURL := store.GetShortURL(valueIn.URL, r.Host)
 
 	type out struct {
 		Result string `json:"result"`
