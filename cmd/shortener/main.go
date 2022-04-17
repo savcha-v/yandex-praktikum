@@ -34,7 +34,7 @@ func createServer() *http.Server {
 func main() {
 
 	server := createServer()
-	//store.InitStorage()
+	store.InitStorage()
 	log.Fatal(server.ListenAndServe())
 
 }
