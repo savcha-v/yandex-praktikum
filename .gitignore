@@ -22,3 +22,4 @@ vendor/
 .idea
 .vscode
 cmd/shortener/YANDEX.code-workspace
+store_urls.txt

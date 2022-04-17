@@ -18,7 +18,7 @@ type UnitURL struct {
 
 var urls = make(map[int]UnitURL)
 
-func InitStorage() {
+func init() {
 
 	FileName = config.Cfg.FileStor
 
