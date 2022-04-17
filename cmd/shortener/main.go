@@ -7,6 +7,7 @@ import (
 	"yandex-praktikum/internal/compress"
 	config "yandex-praktikum/internal/config"
 	handlers "yandex-praktikum/internal/handlers"
+	"yandex-praktikum/internal/store"
 
 	"github.com/go-chi/chi/v5"
 )
