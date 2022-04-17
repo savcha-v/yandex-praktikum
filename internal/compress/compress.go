@@ -32,10 +32,6 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 
 func CompressHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			next.ServeHTTP(w, r)
-			return
-		}
 
 		// распаковать
 		if r.Method == http.MethodPost && r.Header.Get(`Content-Encoding`) == "gzip" {
@@ -50,7 +46,8 @@ func CompressHandler(next http.Handler) http.Handler {
 		}
 
 		// запаковать
-		if strings.Contains(typeToCompress, r.Header.Get("Content-Type")) {
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") &&
+			strings.Contains(typeToCompress, r.Header.Get("Content-Type")) {
 
 			gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
 			if err != nil {
@@ -59,8 +56,11 @@ func CompressHandler(next http.Handler) http.Handler {
 			defer gz.Close()
 			w.Header().Set("Content-Encoding", "gzip")
 
-			next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
+			w = gzipWriter{ResponseWriter: w, Writer: gz}
 
 		}
+
+		next.ServeHTTP(w, r)
+
 	})
 }
