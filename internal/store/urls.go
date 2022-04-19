@@ -6,10 +6,9 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 	config "yandex-praktikum/internal/config"
 )
-
-var FileName string
 
 type UnitURL struct {
 	Full  string `json:"full"`
@@ -20,11 +19,9 @@ var urls = make(map[int]UnitURL)
 
 func InitStorage() {
 
-	FileName = config.Cfg.FileStor
+	if config.FileStor() != "" {
 
-	if FileName != "" {
-
-		file, err := os.OpenFile(FileName, os.O_RDONLY|os.O_CREATE, 0777)
+		file, err := os.OpenFile(config.FileStor(), os.O_RDONLY|os.O_CREATE, 0777)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -50,19 +47,24 @@ func InitStorage() {
 
 func GetShortURL(urlToShort string, host string) string {
 
+	mu := &sync.Mutex{}
+	mu.Lock()
 	nextID := len(urls)
 
-	shortURL := "http://" + host + "/" + config.Cfg.BaseURL + "/" + "?id=" + strconv.Itoa(nextID)
+	shortURL := "http://" + host + "/" + config.BaseURL() + "/" + "?id=" + strconv.Itoa(nextID)
 
 	until := UnitURL{
 		Full:  urlToShort,
 		Short: shortURL,
 	}
 	urls[nextID] = until
-	//записать в файл
-	if FileName != "" {
 
-		file, err := os.OpenFile(FileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	mu.Unlock()
+
+	//записать в файл
+	if config.FileStor() != "" {
+
+		file, err := os.OpenFile(config.FileStor(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -91,11 +93,14 @@ func GetShortURL(urlToShort string, host string) string {
 
 func GetURL(idStr string) (url string, strErr string) {
 
+	mu := &sync.Mutex{}
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return "", "'id' not found"
 	}
 
+	mu.Lock()
+	defer mu.Unlock()
 	until, exists := urls[id]
 	if !exists {
 		return "", "'id' not found"

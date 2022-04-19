@@ -19,13 +19,13 @@ func createServer() *http.Server {
 	r := chi.NewRouter()
 	r.Use(compress.CompressHandler)
 	r.Route("/", func(r chi.Router) {
-		r.Get("/"+config.Cfg.BaseURL+"/", handlers.GetShort)
+		r.Get("/"+config.BaseURL()+"/", handlers.GetShort)
 		r.Post("/", handlers.PostShort)
 		r.Post("/api/shorten", handlers.PostShorten)
 	})
 
 	server := http.Server{
-		Addr:    config.Cfg.ServerAddress,
+		Addr:    config.ServerAddress(),
 		Handler: r,
 	}
 

@@ -13,22 +13,30 @@ type Config struct {
 	FileStor      string `env:"FILE_STORAGE_PATH"`
 }
 
-var Cfg Config
-
-var ServerAddress string
+var cfg Config
 
 func init() {
 
-	err := env.Parse(&Cfg)
+	err := env.Parse(&cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := env.Parse(&Cfg); err != nil {
+	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)
 	}
 
-	flag.StringVar(&Cfg.ServerAddress, "a", Cfg.ServerAddress, "")
-	flag.StringVar(&Cfg.BaseURL, "b", Cfg.BaseURL, "")
-	flag.StringVar(&Cfg.FileStor, "f", Cfg.FileStor, "")
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "")
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "")
+	flag.StringVar(&cfg.FileStor, "f", cfg.FileStor, "")
+}
+
+func BaseURL() string {
+	return cfg.BaseURL
+}
+func ServerAddress() string {
+	return cfg.ServerAddress
+}
+func FileStor() string {
+	return cfg.FileStor
 }
