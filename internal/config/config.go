@@ -13,9 +13,9 @@ type Config struct {
 	FileStor      string `env:"FILE_STORAGE_PATH"`
 }
 
-var cfg Config
+func NewConfig() Config {
 
-func init() {
+	var cfg Config
 
 	err := env.Parse(&cfg)
 	if err != nil {
@@ -29,14 +29,8 @@ func init() {
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "")
 	flag.StringVar(&cfg.FileStor, "f", cfg.FileStor, "")
-}
 
-func BaseURL() string {
-	return cfg.BaseURL
-}
-func ServerAddress() string {
-	return cfg.ServerAddress
-}
-func FileStor() string {
-	return cfg.FileStor
+	flag.Parse()
+
+	return cfg
 }

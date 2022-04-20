@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
 	"yandex-praktikum/internal/compress"
@@ -12,20 +11,20 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func createServer() *http.Server {
-
-	flag.Parse()
+func createServer(cfg config.Config) *http.Server {
 
 	r := chi.NewRouter()
 	r.Use(compress.CompressHandler)
 	r.Route("/", func(r chi.Router) {
-		r.Get("/"+config.BaseURL()+"/", handlers.GetShort)
-		r.Post("/", handlers.PostShort)
-		r.Post("/api/shorten", handlers.PostShorten)
+
+		r.Get("/"+cfg.BaseURL+"/", handlers.GetShort)
+		r.Post("/", handlers.PostShort(cfg))
+		r.Post("/api/shorten", handlers.PostShorten(cfg))
+
 	})
 
 	server := http.Server{
-		Addr:    config.ServerAddress(),
+		Addr:    cfg.ServerAddress,
 		Handler: r,
 	}
 
@@ -34,8 +33,10 @@ func createServer() *http.Server {
 
 func main() {
 
-	server := createServer()
-	store.InitStorage()
+	cfg := config.NewConfig()
+	server := createServer(cfg)
+	store.InitStorage(cfg.FileStor)
+
 	log.Fatal(server.ListenAndServe())
 
 }
