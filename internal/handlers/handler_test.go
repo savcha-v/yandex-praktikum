@@ -28,62 +28,62 @@ type TestStruct struct {
 }
 
 func TestPostShort(t *testing.T) {
-
+	var cfg config.Config
 	tests := []TestStruct{
 		{
 			name:   "test endpoint DELETE",
 			method: http.MethodDelete,
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "Shortcut url not found\n",
 			},
 		},
 		{
 			name:   "test endpoint PUT",
 			method: http.MethodPut,
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "Shortcut url not found\n",
 			},
 		},
 		{
 			name:   "test endpoint PATCH",
 			method: http.MethodPatch,
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "Shortcut url not found\n",
 			},
 		},
 		{
 			name:   "test endpoint CONNECT",
 			method: http.MethodConnect,
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "Shortcut url not found\n",
 			},
 		},
 		{
 			name:   "test endpoint HEAD",
 			method: http.MethodHead,
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "Shortcut url not found\n",
 			},
 		},
 		{
 			name:   "test endpoint OPTIONS",
 			method: http.MethodOptions,
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "Shortcut url not found\n",
 			},
 		},
 		{
 			name:   "test endpoint TRACE",
 			method: http.MethodTrace,
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "Shortcut url not found\n",
 			},
 		},
 	}
@@ -93,7 +93,7 @@ func TestPostShort(t *testing.T) {
 			request := httptest.NewRequest(tt.method, "/status", nil)
 
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(PostShort)
+			h := http.HandlerFunc(PostShort(cfg))
 
 			h.ServeHTTP(w, request)
 			res := w.Result()
@@ -125,8 +125,8 @@ func TestPostGet(t *testing.T) {
 			method:  http.MethodDelete,
 			request: "/?id=1",
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "GET requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -134,8 +134,8 @@ func TestPostGet(t *testing.T) {
 			method:  http.MethodPut,
 			request: "/?id=1",
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "GET requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -143,8 +143,8 @@ func TestPostGet(t *testing.T) {
 			method:  http.MethodPatch,
 			request: "/?id=1",
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "GET requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -152,8 +152,8 @@ func TestPostGet(t *testing.T) {
 			method:  http.MethodConnect,
 			request: "/?id=1",
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "GET requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -161,8 +161,8 @@ func TestPostGet(t *testing.T) {
 			method:  http.MethodHead,
 			request: "/?id=1",
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "GET requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -170,8 +170,8 @@ func TestPostGet(t *testing.T) {
 			method:  http.MethodOptions,
 			request: "/?id=1",
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "GET requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -179,8 +179,8 @@ func TestPostGet(t *testing.T) {
 			method:  http.MethodTrace,
 			request: "/?id=1",
 			want: Want{
-				code:     http.StatusMethodNotAllowed,
-				response: "GET requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 	}
@@ -259,16 +259,16 @@ func TestPostShorten(t *testing.T) {
 			name:   "test endpoint DELETE",
 			method: http.MethodDelete,
 			want: wantType{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
 			name:   "test endpoint PUT",
 			method: http.MethodPut,
 			want: wantType{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -276,40 +276,40 @@ func TestPostShorten(t *testing.T) {
 			method: http.MethodPatch,
 
 			want: wantType{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
 			name:   "test endpoint CONNECT",
 			method: http.MethodConnect,
 			want: wantType{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
 			name:   "test endpoint HEAD",
 			method: http.MethodHead,
 			want: wantType{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
 			name:   "test endpoint OPTIONS",
 			method: http.MethodOptions,
 			want: wantType{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
 			name:   "test endpoint TRACE",
 			method: http.MethodTrace,
 			want: wantType{
-				code:     http.StatusMethodNotAllowed,
-				response: "POST requests are allowed!\n",
+				code:     http.StatusBadRequest,
+				response: "'id' missing\n",
 			},
 		},
 		{
@@ -328,7 +328,7 @@ func TestPostShorten(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(PostShorten)
+			h := http.HandlerFunc(PostShorten(cfg))
 
 			if tt.bodyReq != (bodyReqType{}) {
 				requestBody, err := json.Marshal(&bodyReq)
