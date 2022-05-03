@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"yandex-praktikum/internal/config"
+	"yandex-praktikum/internal/cookie"
 	store "yandex-praktikum/internal/store"
 )
 
@@ -26,7 +27,9 @@ func PostShort(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		responseURL := store.GetShortURL(urlToShort, r.Host, cfg)
+		userID := cookie.GetUserID(r)
+
+		responseURL := store.GetShortURL(urlToShort, r.Host, cfg, userID)
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusCreated)
@@ -61,7 +64,9 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		responseURL := store.GetShortURL(valueIn.URL, r.Host, cfg)
+		userID := cookie.GetUserID(r)
+
+		responseURL := store.GetShortURL(valueIn.URL, r.Host, cfg, userID)
 
 		type out struct {
 			Result string `json:"result"`
@@ -104,4 +109,26 @@ func GetShort(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(""))
 	fmt.Fprint(w)
 
+}
+
+func GetUserShorts(w http.ResponseWriter, r *http.Request) {
+
+	userID := cookie.GetUserID(r)
+
+	userShorts := store.GetUserShorts(userID)
+
+	w.Header().Set("Content-Type", "application/json")
+	if len(userShorts) != 0 {
+		result, err := json.Marshal(userShorts)
+		if err != nil {
+			http.Error(w, "Shorten marshal error", http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(result)
+	} else {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	fmt.Fprint(w)
 }

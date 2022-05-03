@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"yandex-praktikum/internal/compress"
 	config "yandex-praktikum/internal/config"
+	"yandex-praktikum/internal/cookie"
 	handlers "yandex-praktikum/internal/handlers"
 	"yandex-praktikum/internal/store"
 
@@ -15,11 +16,13 @@ func createServer(cfg config.Config) *http.Server {
 
 	r := chi.NewRouter()
 	r.Use(compress.CompressHandler)
+	r.Use(cookie.SetUserID)
 	r.Route("/", func(r chi.Router) {
 
 		r.Get("/"+cfg.BaseURL+"/", handlers.GetShort)
 		r.Post("/", handlers.PostShort(cfg))
 		r.Post("/api/shorten", handlers.PostShorten(cfg))
+		r.Get("/api/user/urls", handlers.GetUserShorts)
 
 	})
 

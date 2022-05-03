@@ -11,8 +11,14 @@ import (
 )
 
 type unitURL struct {
-	Full  string `json:"full"`
-	Short string `json:"short"`
+	Full   string `json:"full"`
+	Short  string `json:"short"`
+	UserID string `json:"userID"`
+}
+
+type UserShorts struct {
+	Short string `json:"short_url"`
+	Full  string `json:"original_url"`
 }
 
 var urls = make(map[int]unitURL)
@@ -39,12 +45,11 @@ func InitStorage(fileStor string) {
 				log.Fatal(err)
 			}
 			json.Unmarshal([]byte(data), &urls)
-
 		}
 	}
 }
 
-func GetShortURL(urlToShort string, host string, cfg config.Config) string {
+func GetShortURL(urlToShort string, host string, cfg config.Config, userID string) string {
 
 	mu := &sync.Mutex{}
 	mu.Lock()
@@ -55,8 +60,9 @@ func GetShortURL(urlToShort string, host string, cfg config.Config) string {
 	shortURL := "http://" + host + "/" + cfg.BaseURL + "/" + "?id=" + strconv.Itoa(nextID)
 
 	until := unitURL{
-		Full:  urlToShort,
-		Short: shortURL,
+		Full:   urlToShort,
+		Short:  shortURL,
+		UserID: userID,
 	}
 	urls[nextID] = until
 
@@ -87,7 +93,6 @@ func GetShortURL(urlToShort string, host string, cfg config.Config) string {
 		writer.Flush()
 	}
 	return shortURL
-
 }
 
 func GetURL(idStr string) (url string, strErr string) {
@@ -103,4 +108,20 @@ func GetURL(idStr string) (url string, strErr string) {
 	}
 
 	return until.Full, ""
+}
+
+func GetUserShorts(userID string) []UserShorts {
+
+	var result []UserShorts
+	for _, unitUrl := range urls {
+		if unitUrl.UserID != userID {
+			continue
+		}
+		unitRes := UserShorts{
+			Short: unitUrl.Short,
+			Full:  unitUrl.Full,
+		}
+		result = append(result, unitRes)
+	}
+	return result
 }
