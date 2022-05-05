@@ -113,13 +113,13 @@ func GetURL(idStr string) (url string, strErr string) {
 func GetUserShorts(userID string) []UserShorts {
 
 	var result []UserShorts
-	for _, unitUrl := range urls {
-		if unitUrl.UserID != userID {
+	for _, unitURL := range urls {
+		if unitURL.UserID != userID {
 			continue
 		}
 		unitRes := UserShorts{
-			Short: unitUrl.Short,
-			Full:  unitUrl.Full,
+			Short: unitURL.Short,
+			Full:  unitURL.Full,
 		}
 		result = append(result, unitRes)
 	}

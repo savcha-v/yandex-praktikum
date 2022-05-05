@@ -132,3 +132,17 @@ func GetUserShorts(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w)
 }
+
+func GetPing(cfg config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		statusPing := http.StatusOK
+		if store.PingDB(cfg.DataBase) {
+			statusPing = http.StatusInternalServerError
+		}
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(statusPing)
+		w.Write([]byte(""))
+		fmt.Fprint(w)
+	}
+}

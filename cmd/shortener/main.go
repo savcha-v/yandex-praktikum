@@ -23,6 +23,7 @@ func createServer(cfg config.Config) *http.Server {
 		r.Post("/", handlers.PostShort(cfg))
 		r.Post("/api/shorten", handlers.PostShorten(cfg))
 		r.Get("/api/user/urls", handlers.GetUserShorts)
+		r.Get("/ping", handlers.GetPing(cfg))
 
 	})
 
