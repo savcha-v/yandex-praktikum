@@ -5,26 +5,28 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-func PingDB(ctx context.Context, dataBase string) bool {
+func PingDB(ctx context.Context, dataBase string) int {
 
 	db, err := sql.Open("pgx", dataBase)
 	if err != nil {
-		return false
+		return http.StatusInternalServerError
 	}
 	defer db.Close()
 
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
 	if err = db.PingContext(ctx); err != nil {
-		return false
+		return http.StatusInternalServerError
 	}
-	return true
+	return http.StatusOK
 }
 
 func dbInit(dataBase string) error {

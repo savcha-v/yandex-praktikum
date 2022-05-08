@@ -139,10 +139,7 @@ func GetUserShorts(cfg config.Config) http.HandlerFunc {
 func GetPing(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		statusPing := http.StatusOK
-		if store.PingDB(r.Context(), cfg.DataBase) {
-			statusPing = http.StatusInternalServerError
-		}
+		statusPing := store.PingDB(r.Context(), cfg.DataBase)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(statusPing)
 		w.Write([]byte(""))

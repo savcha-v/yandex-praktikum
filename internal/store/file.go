@@ -19,13 +19,10 @@ func fileInit(fileStor string) error {
 	for scanner.Scan() {
 
 		if scanner.Err() != nil {
-			log.Fatal(scanner.Err())
+			return scanner.Err()
 		}
 		data := scanner.Bytes()
 
-		if err != nil {
-			log.Fatal(err)
-		}
 		json.Unmarshal([]byte(data), &urls)
 	}
 	return nil
