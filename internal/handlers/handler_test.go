@@ -185,13 +185,19 @@ func TestPostGet(t *testing.T) {
 		},
 	}
 
+	var cfg config.Config
+	err := env.Parse(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for _, tt := range tests {
 		// запускаем каждый тест
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, "/status", nil)
 
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(GetShort)
+			h := http.HandlerFunc(GetShort(cfg))
 
 			h.ServeHTTP(w, request)
 			res := w.Result()

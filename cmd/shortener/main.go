@@ -17,14 +17,14 @@ func createServer(cfg config.Config) *http.Server {
 	r := chi.NewRouter()
 	r.Use(compress.CompressHandler)
 	r.Use(cookie.SetUserID)
+
 	r.Route("/", func(r chi.Router) {
 
-		r.Get("/"+cfg.BaseURL+"/", handlers.GetShort)
 		r.Post("/", handlers.PostShort(cfg))
 		r.Post("/api/shorten", handlers.PostShorten(cfg))
-		r.Get("/api/user/urls", handlers.GetUserShorts)
+		r.Get("/api/user/urls", handlers.GetUserShorts(cfg))
 		r.Get("/ping", handlers.GetPing(cfg))
-
+		r.Get("/"+cfg.BaseURL+"/", handlers.GetShort(cfg))
 	})
 
 	server := http.Server{
@@ -39,7 +39,7 @@ func main() {
 
 	cfg := config.NewConfig()
 	server := createServer(cfg)
-	store.InitStorage(cfg.FileStor)
+	store.InitStorage(cfg)
 
 	log.Fatal(server.ListenAndServe())
 

@@ -89,55 +89,58 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 	}
 }
 
-func GetShort(w http.ResponseWriter, r *http.Request) {
+func GetShort(cfg config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "'id' missing", http.StatusBadRequest)
-		return
-	}
-
-	reternURL, err := store.GetURL(id)
-	if err != "" {
-		http.Error(w, err, http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Add("Location", reternURL)
-	w.WriteHeader(http.StatusTemporaryRedirect)
-	w.Write([]byte(""))
-	fmt.Fprint(w)
-
-}
-
-func GetUserShorts(w http.ResponseWriter, r *http.Request) {
-
-	userID := cookie.GetUserID(r)
-
-	userShorts := store.GetUserShorts(userID)
-
-	w.Header().Set("Content-Type", "application/json")
-	if len(userShorts) != 0 {
-		result, err := json.Marshal(userShorts)
-		if err != nil {
-			http.Error(w, "Shorten marshal error", http.StatusBadRequest)
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "'id' missing", http.StatusBadRequest)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
-		w.Write(result)
-	} else {
-		w.WriteHeader(http.StatusNoContent)
-	}
 
-	fmt.Fprint(w)
+		reternURL, err := store.GetURL(r.Context(), id, cfg)
+		if err != "" {
+			http.Error(w, err, http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Add("Location", reternURL)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		w.Write([]byte(""))
+		fmt.Fprint(w)
+
+	}
+}
+
+func GetUserShorts(cfg config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := cookie.GetUserID(r)
+
+		userShorts := store.GetUserShorts(r.Context(), cfg, userID)
+
+		w.Header().Set("Content-Type", "application/json")
+		if len(userShorts) != 0 {
+			result, err := json.Marshal(userShorts)
+			if err != nil {
+				http.Error(w, "Shorten marshal error", http.StatusBadRequest)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write(result)
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+		}
+
+		fmt.Fprint(w)
+	}
 }
 
 func GetPing(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		statusPing := http.StatusOK
-		if store.PingDB(cfg.DataBase) {
+		if store.PingDB(r.Context(), cfg.DataBase) {
 			statusPing = http.StatusInternalServerError
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")

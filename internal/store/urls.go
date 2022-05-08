@@ -1,10 +1,8 @@
 package store
 
 import (
-	"bufio"
-	"encoding/json"
+	"context"
 	"log"
-	"os"
 	"strconv"
 	"sync"
 	config "yandex-praktikum/internal/config"
@@ -23,28 +21,16 @@ type UserShorts struct {
 
 var urls = make(map[int]unitURL)
 
-func InitStorage(fileStor string) {
+func InitStorage(cfg config.Config) {
 
-	if fileStor != "" {
-		file, err := os.OpenFile(fileStor, os.O_RDONLY|os.O_CREATE, 0777)
-		if err != nil {
+	if cfg.DataBase != "" {
+		// context.Background(),
+		if err := dbInit(cfg.DataBase); err != nil {
 			log.Fatal(err)
 		}
-		defer file.Close()
-
-		scanner := bufio.NewScanner(file)
-
-		for scanner.Scan() {
-
-			if scanner.Err() != nil {
-				log.Fatal(scanner.Err())
-			}
-			data := scanner.Bytes()
-
-			if err != nil {
-				log.Fatal(err)
-			}
-			json.Unmarshal([]byte(data), &urls)
+	} else if cfg.FileStor != "" {
+		if err := fileInit(cfg.FileStor); err != nil {
+			log.Fatal(err)
 		}
 	}
 }
@@ -55,73 +41,76 @@ func GetShortURL(urlToShort string, host string, cfg config.Config, userID strin
 	mu.Lock()
 	defer mu.Unlock()
 
-	nextID := len(urls)
-
-	shortURL := "http://" + host + "/" + cfg.BaseURL + "/" + "?id=" + strconv.Itoa(nextID)
-
 	until := unitURL{
 		Full:   urlToShort,
-		Short:  shortURL,
+		Short:  "http://" + host + "/" + cfg.BaseURL + "/" + "?id=",
 		UserID: userID,
 	}
-	urls[nextID] = until
 
-	//записать в файл
-	if cfg.FileStor != "" {
-
-		file, err := os.OpenFile(cfg.FileStor, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	if cfg.DataBase != "" {
+		// записать в базу данных
+		err := dbWrite(context.Background(), cfg.DataBase, &until)
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer file.Close()
+	} else {
+		// записать в память
+		nextID := len(urls)
+		until.Short += strconv.Itoa(nextID)
+		urls[nextID] = until
 
-		var record = make(map[int]unitURL)
-
-		record[nextID] = until
-		data, err := json.Marshal(record)
-		if err != nil {
-			log.Fatal(err)
+		if cfg.FileStor != "" {
+			//записать в файл
+			if err := fileWrite(cfg.FileStor, until, nextID); err != nil {
+				log.Fatal(err)
+			}
 		}
 
-		writer := bufio.NewWriter(file)
-		if _, err := writer.Write(data); err != nil {
-			log.Fatal(err)
-		}
-		if err := writer.WriteByte('\n'); err != nil {
-			log.Fatal(err)
-		}
-		writer.Flush()
 	}
-	return shortURL
+	return until.Short
 }
 
-func GetURL(idStr string) (url string, strErr string) {
+func GetURL(ctx context.Context, idStr string, cfg config.Config) (url string, strErr string) {
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return "", "'id' not found"
 	}
 
-	until, exists := urls[id]
-	if !exists {
-		return "", "'id' not found"
+	var fullURL string
+	if cfg.DataBase != "" {
+		full, err := dbReadURL(ctx, cfg.DataBase, id)
+		if err != nil {
+			return "", err.Error()
+		}
+		fullURL = full
+	} else {
+		until, exists := urls[id]
+		if !exists {
+			return "", "'id' not found"
+		}
+		fullURL = until.Full
 	}
 
-	return until.Full, ""
+	return fullURL, ""
 }
 
-func GetUserShorts(userID string) []UserShorts {
+func GetUserShorts(ctx context.Context, cfg config.Config, userID string) []UserShorts {
 
 	var result []UserShorts
-	for _, unitURL := range urls {
-		if unitURL.UserID != userID {
-			continue
+	if cfg.DataBase != "" {
+		result = dbReadUserShorts(cfg.DataBase, userID)
+	} else {
+		for _, unitURL := range urls {
+			if unitURL.UserID != userID {
+				continue
+			}
+			unitRes := UserShorts{
+				Short: unitURL.Short,
+				Full:  unitURL.Full,
+			}
+			result = append(result, unitRes)
 		}
-		unitRes := UserShorts{
-			Short: unitURL.Short,
-			Full:  unitURL.Full,
-		}
-		result = append(result, unitRes)
 	}
 	return result
 }
