@@ -146,3 +146,36 @@ func GetPing(cfg config.Config) http.HandlerFunc {
 		fmt.Fprint(w)
 	}
 }
+
+func PostBatch(cfg config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		body, err := io.ReadAll(r.Body)
+		defer r.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var v []store.RequestUrl
+		userID := cookie.GetUserID(r)
+
+		if err := json.Unmarshal([]byte(body), &v); err != nil {
+			http.Error(w, "Batch unmarshal error", http.StatusBadRequest)
+			return
+		}
+
+		valueOut := store.ShortURLs(v, r.Host, cfg, userID)
+
+		result, err := json.Marshal(valueOut)
+		if err != nil {
+			http.Error(w, "Shorten marshal error", http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write(result)
+		fmt.Fprint(w)
+	}
+}

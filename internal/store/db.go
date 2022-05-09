@@ -48,7 +48,6 @@ func dbInit(dataBase string) error {
 							 );`); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -63,9 +62,7 @@ func dbWrite(ctx context.Context, dataBase string, until *unitURL) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	var id int
-	row := db.QueryRowContext(ctx, "SELECT COUNT(*) as count FROM urls")
-	err = row.Scan(&id)
+	id, err := dbCountUrls(ctx, db)
 	if err != nil {
 		return err
 	}
@@ -81,6 +78,16 @@ func dbWrite(ctx context.Context, dataBase string, until *unitURL) error {
 	}
 
 	return nil
+}
+
+func dbCountUrls(ctx context.Context, db *sql.DB) (int, error) {
+	var id int
+	row := db.QueryRowContext(context.Background(), "SELECT COUNT(*) as count FROM urls")
+	err := row.Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func dbReadURL(ctx context.Context, dataBase string, id int) (string, error) {

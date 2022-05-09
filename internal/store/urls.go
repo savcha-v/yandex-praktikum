@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"strconv"
 	"sync"
@@ -12,11 +13,24 @@ type unitURL struct {
 	Full   string `json:"full"`
 	Short  string `json:"short"`
 	UserID string `json:"userID"`
+	Uuid   string
 }
 
 type UserShorts struct {
 	Short string `json:"short_url"`
 	Full  string `json:"original_url"`
+}
+
+type responseUrl struct {
+	Uuid  string `json:"correlation_id"`
+	Short string `json:"short_url"`
+}
+
+type RequestUrl struct {
+	Full   string `json:"original_url,omitempty"`
+	Short  string
+	UserID string
+	Uuid   string `json:"correlation_id,omitempty"`
 }
 
 var urls = make(map[int]unitURL)
@@ -70,6 +84,65 @@ func GetShortURL(urlToShort string, host string, cfg config.Config, userID strin
 	return until.Short
 }
 
+func ShortURLs(urls []RequestUrl, host string, cfg config.Config, userID string) []responseUrl {
+
+	mu := &sync.Mutex{}
+	mu.Lock()
+	defer mu.Unlock()
+
+	shortBase := "http://" + host + "/" + cfg.BaseURL + "/" + "?id="
+
+	db, err := sql.Open("pgx", cfg.DataBase)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// объявляем транзакцию
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// если возникает ошибка, откатываем изменения
+	defer tx.Rollback()
+
+	ctx := context.Background()
+
+	// готовим инструкцию
+	stmt, err := tx.PrepareContext(ctx, `INSERT INTO urls ("ID", "Full", "Short", "UserID") VALUES ($1, $2, $3, $4)`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// не забываем закрыть инструкцию, когда она больше не нужна
+	defer stmt.Close()
+
+	initialID, err := dbCountUrls(ctx, db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var result []responseUrl
+
+	for counter, url := range urls {
+		nextID := initialID + counter
+		short := shortBase + strconv.Itoa(nextID)
+		if _, err = stmt.ExecContext(ctx, nextID, url.Full, short, userID); err != nil {
+			log.Fatal(err)
+		}
+
+		res := responseUrl{
+			Uuid:  url.Uuid,
+			Short: short,
+		}
+		result = append(result, res)
+
+	}
+	// сохраняем изменения
+	tx.Commit()
+
+	return result
+}
+
 func GetURL(ctx context.Context, idStr string, cfg config.Config) (url string, strErr string) {
 
 	id, err := strconv.Atoi(idStr)
@@ -101,13 +174,13 @@ func GetUserShorts(ctx context.Context, cfg config.Config, userID string) []User
 	if cfg.DataBase != "" {
 		result = dbReadUserShorts(cfg.DataBase, userID)
 	} else {
-		for _, unitURL := range urls {
-			if unitURL.UserID != userID {
+		for _, UnitURL := range urls {
+			if UnitURL.UserID != userID {
 				continue
 			}
 			unitRes := UserShorts{
-				Short: unitURL.Short,
-				Full:  unitURL.Full,
+				Short: UnitURL.Short,
+				Full:  UnitURL.Full,
 			}
 			result = append(result, unitRes)
 		}
