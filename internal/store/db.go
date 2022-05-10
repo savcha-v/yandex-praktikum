@@ -85,6 +85,7 @@ func dbWrite(ctx context.Context, dataBase string, until *unitURL) error {
 				log.Fatal(err)
 			}
 			until.Short = short
+			until.httpStatus = http.StatusConflict
 			return nil
 		}
 		return err

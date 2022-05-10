@@ -4,16 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"net/http"
 	"strconv"
 	"sync"
 	config "yandex-praktikum/internal/config"
 )
 
 type unitURL struct {
-	Full   string `json:"full"`
-	Short  string `json:"short"`
-	UserID string `json:"userID"`
-	UUID   string
+	Full       string `json:"full"`
+	Short      string `json:"short"`
+	UserID     string `json:"userID"`
+	UUID       string
+	httpStatus int
 }
 
 type UserShorts struct {
@@ -49,16 +51,17 @@ func InitStorage(cfg config.Config) {
 	}
 }
 
-func GetShortURL(urlToShort string, host string, cfg config.Config, userID string) string {
+func GetShortURL(urlToShort string, host string, cfg config.Config, userID string) (string, int) {
 
 	mu := &sync.Mutex{}
 	mu.Lock()
 	defer mu.Unlock()
 
 	until := unitURL{
-		Full:   urlToShort,
-		Short:  "http://" + host + "/" + cfg.BaseURL + "/" + "?id=",
-		UserID: userID,
+		Full:       urlToShort,
+		Short:      "http://" + host + "/" + cfg.BaseURL + "/" + "?id=",
+		UserID:     userID,
+		httpStatus: http.StatusCreated,
 	}
 
 	if cfg.DataBase != "" {
@@ -81,7 +84,7 @@ func GetShortURL(urlToShort string, host string, cfg config.Config, userID strin
 		}
 
 	}
-	return until.Short
+	return until.Short, until.httpStatus
 }
 
 func ShortURLs(urls []RequestURL, host string, cfg config.Config, userID string) []responseURL {

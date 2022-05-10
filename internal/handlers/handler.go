@@ -29,10 +29,10 @@ func PostShort(cfg config.Config) http.HandlerFunc {
 
 		userID := cookie.GetUserID(r)
 
-		responseURL := store.GetShortURL(urlToShort, r.Host, cfg, userID)
+		responseURL, httpStatus := store.GetShortURL(urlToShort, r.Host, cfg, userID)
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(httpStatus)
 		w.Write([]byte(responseURL))
 		fmt.Fprint(w)
 	}
@@ -66,7 +66,7 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 
 		userID := cookie.GetUserID(r)
 
-		responseURL := store.GetShortURL(valueIn.URL, r.Host, cfg, userID)
+		responseURL, httpStatus := store.GetShortURL(valueIn.URL, r.Host, cfg, userID)
 
 		type out struct {
 			Result string `json:"result"`
@@ -83,7 +83,7 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(httpStatus)
 		w.Write(result)
 		fmt.Fprint(w)
 	}
