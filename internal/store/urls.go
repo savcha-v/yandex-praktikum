@@ -13,7 +13,7 @@ type unitURL struct {
 	Full   string `json:"full"`
 	Short  string `json:"short"`
 	UserID string `json:"userID"`
-	Uuid   string
+	UUID   string
 }
 
 type UserShorts struct {
@@ -21,16 +21,16 @@ type UserShorts struct {
 	Full  string `json:"original_url"`
 }
 
-type responseUrl struct {
-	Uuid  string `json:"correlation_id"`
+type responseURL struct {
+	UUID  string `json:"correlation_id"`
 	Short string `json:"short_url"`
 }
 
-type RequestUrl struct {
+type RequestURL struct {
 	Full   string `json:"original_url,omitempty"`
 	Short  string
 	UserID string
-	Uuid   string `json:"correlation_id,omitempty"`
+	UUID   string `json:"correlation_id,omitempty"`
 }
 
 var urls = make(map[int]unitURL)
@@ -84,7 +84,7 @@ func GetShortURL(urlToShort string, host string, cfg config.Config, userID strin
 	return until.Short
 }
 
-func ShortURLs(urls []RequestUrl, host string, cfg config.Config, userID string) []responseUrl {
+func ShortURLs(urls []RequestURL, host string, cfg config.Config, userID string) []responseURL {
 
 	mu := &sync.Mutex{}
 	mu.Lock()
@@ -121,7 +121,7 @@ func ShortURLs(urls []RequestUrl, host string, cfg config.Config, userID string)
 		log.Fatal(err)
 	}
 
-	var result []responseUrl
+	var result []responseURL
 
 	for counter, url := range urls {
 		nextID := initialID + counter
@@ -130,8 +130,8 @@ func ShortURLs(urls []RequestUrl, host string, cfg config.Config, userID string)
 			log.Fatal(err)
 		}
 
-		res := responseUrl{
-			Uuid:  url.Uuid,
+		res := responseURL{
+			UUID:  url.UUID,
 			Short: short,
 		}
 		result = append(result, res)

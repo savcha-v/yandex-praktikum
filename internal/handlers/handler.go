@@ -157,7 +157,7 @@ func PostBatch(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		var v []store.RequestUrl
+		var v []store.RequestURL
 		userID := cookie.GetUserID(r)
 
 		if err := json.Unmarshal([]byte(body), &v); err != nil {

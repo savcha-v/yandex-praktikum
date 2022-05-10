@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
@@ -42,7 +44,7 @@ func dbInit(dataBase string) error {
 
 	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS urls(
 							"ID" INTEGER,
-							"Full" TEXT,
+							"Full" TEXT PRIMARY KEY,
   							"Short" TEXT,
  							"UserID" TEXT
 							 );`); err != nil {
@@ -73,7 +75,18 @@ func dbWrite(ctx context.Context, dataBase string, until *unitURL) error {
 	INSERT INTO urls ("ID", "Full", "Short", "UserID")
 	VALUES ($1, $2, $3, $4)`
 	_, err = db.Exec(textInsert, id, until.Full, until.Short, until.UserID)
+
 	if err != nil {
+		pgErr := err.(*pgconn.PgError)
+
+		if pgErr.Code == pgerrcode.UniqueViolation {
+			short, err := dbReadShort(context.Background(), dataBase, until.Full)
+			if err != nil {
+				log.Fatal(err)
+			}
+			until.Short = short
+			return nil
+		}
 		return err
 	}
 
@@ -113,6 +126,31 @@ func dbReadURL(ctx context.Context, dataBase string, id int) (string, error) {
 		return fullID.String, nil
 	}
 	return "", errors.New("id not found")
+}
+
+func dbReadShort(ctx context.Context, dataBase string, full string) (string, error) {
+
+	db, err := sql.Open("pgx", dataBase)
+	if err != nil {
+		return "", err
+	}
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	var fullID sql.NullString
+
+	textQuery := `SELECT "Short" FROM urls WHERE "Full" = $1`
+	err = db.QueryRowContext(ctx, textQuery, full).Scan(&fullID)
+	if err != nil {
+		return "", err
+	}
+
+	if fullID.Valid {
+		return fullID.String, nil
+	}
+	return "", errors.New("full not found")
 }
 
 func dbReadUserShorts(dataBase string, userID string) []UserShorts {
