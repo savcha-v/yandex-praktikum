@@ -6,11 +6,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"strings"
+	"yandex-praktikum/internal/config"
 )
 
-var key = "10c57de0"
-
-func Decrypt(msg string) (string, error) {
+func Decrypt(msg string, cfg config.Config) (string, error) {
 
 	// выделяем подпись
 	dst := msg[:len(msg)-36]
@@ -22,7 +21,7 @@ func Decrypt(msg string) (string, error) {
 		panic(err)
 	}
 	// хеш
-	h := hmac.New(sha256.New, []byte(key))
+	h := hmac.New(sha256.New, []byte(cfg.Key))
 	// вычисляем подпись
 	h.Write([]byte(id))
 	sign := h.Sum(nil)
@@ -34,11 +33,11 @@ func Decrypt(msg string) (string, error) {
 	}
 }
 
-func Encrypt(src string) (string, error) {
+func Encrypt(src string, cfg config.Config) (string, error) {
 
 	data := []byte(src)
 	// вычисляем хеш
-	h := hmac.New(sha256.New, []byte(key))
+	h := hmac.New(sha256.New, []byte(cfg.Key))
 	h.Write(data)
 	dst := hex.EncodeToString(h.Sum(nil))
 	msg := dst + src

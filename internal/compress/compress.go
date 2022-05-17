@@ -7,16 +7,7 @@ import (
 	"strings"
 )
 
-var typeToCompress string
-
-type gzipWriter struct {
-	http.ResponseWriter
-	Writer io.Writer
-}
-
-func init() {
-	typeToCompress =
-		`application/javascript
+const typeToCompress = `application/javascript
 		application/json
 		text/css
 		text/html
@@ -24,6 +15,10 @@ func init() {
 		application/gzip
 		application/x-gzip
 		text/xml`
+
+type gzipWriter struct {
+	http.ResponseWriter
+	Writer io.Writer
 }
 
 func (w gzipWriter) Write(b []byte) (int, error) {

@@ -8,58 +8,45 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"yandex-praktikum/internal/config"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-func PingDB(ctx context.Context, dataBase string) int {
+func PingDB(ctx context.Context, cfg config.Config) int {
 
-	db, err := sql.Open("pgx", dataBase)
-	if err != nil {
-		return http.StatusInternalServerError
-	}
-	defer db.Close()
-
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
-	if err = db.PingContext(ctx); err != nil {
+	db := *cfg.ConnectDB
+	if err := db.PingContext(ctx); err != nil {
 		return http.StatusInternalServerError
 	}
 	return http.StatusOK
 }
 
-func dbInit(dataBase string) error {
-	// ctx context.Context,
-	db, err := sql.Open("pgx", dataBase)
+func dbInit(cfg *config.Config) error {
+
+	db, err := sql.Open("pgx", cfg.DataBase)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
-	// ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	// defer cancel()
-
-	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS urls(
-							"ID" INTEGER,
-							"Full" TEXT PRIMARY KEY,
-  							"Short" TEXT,
- 							"UserID" TEXT
-							 );`); err != nil {
+	textCreate := `CREATE TABLE IF NOT EXISTS urls(
+		"ID" INTEGER,
+		"Full" TEXT PRIMARY KEY,
+		  "Short" TEXT,
+		 "UserID" TEXT
+		 );`
+	if _, err := db.Exec(textCreate); err != nil {
 		return err
 	}
+
+	cfg.ConnectDB = db
+
 	return nil
 }
 
-func dbWrite(ctx context.Context, dataBase string, until *unitURL) error {
-
-	db, err := sql.Open("pgx", dataBase)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
+func dbWrite(ctx context.Context, db *sql.DB, until *unitURL) error {
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -74,13 +61,13 @@ func dbWrite(ctx context.Context, dataBase string, until *unitURL) error {
 	textInsert := `
 	INSERT INTO urls ("ID", "Full", "Short", "UserID")
 	VALUES ($1, $2, $3, $4)`
-	_, err = db.Exec(textInsert, id, until.Full, until.Short, until.UserID)
+	_, err = db.ExecContext(ctx, textInsert, id, until.Full, until.Short, until.UserID)
 
 	if err != nil {
 		pgErr := err.(*pgconn.PgError)
 
 		if pgErr.Code == pgerrcode.UniqueViolation {
-			short, err := dbReadShort(context.Background(), dataBase, until.Full)
+			short, err := dbReadShort(ctx, db, until.Full)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -96,7 +83,11 @@ func dbWrite(ctx context.Context, dataBase string, until *unitURL) error {
 
 func dbCountUrls(ctx context.Context, db *sql.DB) (int, error) {
 	var id int
-	row := db.QueryRowContext(context.Background(), "SELECT COUNT(*) as count FROM urls")
+
+	// ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	// defer cancel()
+
+	row := db.QueryRowContext(ctx, "SELECT COUNT(*) as count FROM urls")
 	err := row.Scan(&id)
 	if err != nil {
 		return 0, err
@@ -104,13 +95,7 @@ func dbCountUrls(ctx context.Context, db *sql.DB) (int, error) {
 	return id, nil
 }
 
-func dbReadURL(ctx context.Context, dataBase string, id int) (string, error) {
-
-	db, err := sql.Open("pgx", dataBase)
-	if err != nil {
-		return "", err
-	}
-	defer db.Close()
+func dbReadURL(ctx context.Context, db *sql.DB, id int) (string, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -118,7 +103,7 @@ func dbReadURL(ctx context.Context, dataBase string, id int) (string, error) {
 	var fullID sql.NullString
 
 	textQuery := `SELECT "Full" FROM urls WHERE "ID" = $1`
-	err = db.QueryRowContext(ctx, textQuery, id).Scan(&fullID)
+	err := db.QueryRowContext(ctx, textQuery, id).Scan(&fullID)
 	if err != nil {
 		return "", err
 	}
@@ -129,13 +114,7 @@ func dbReadURL(ctx context.Context, dataBase string, id int) (string, error) {
 	return "", errors.New("id not found")
 }
 
-func dbReadShort(ctx context.Context, dataBase string, full string) (string, error) {
-
-	db, err := sql.Open("pgx", dataBase)
-	if err != nil {
-		return "", err
-	}
-	defer db.Close()
+func dbReadShort(ctx context.Context, db *sql.DB, full string) (string, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -143,7 +122,7 @@ func dbReadShort(ctx context.Context, dataBase string, full string) (string, err
 	var fullID sql.NullString
 
 	textQuery := `SELECT "Short" FROM urls WHERE "Full" = $1`
-	err = db.QueryRowContext(ctx, textQuery, full).Scan(&fullID)
+	err := db.QueryRowContext(ctx, textQuery, full).Scan(&fullID)
 	if err != nil {
 		return "", err
 	}
@@ -154,20 +133,13 @@ func dbReadShort(ctx context.Context, dataBase string, full string) (string, err
 	return "", errors.New("full not found")
 }
 
-func dbReadUserShorts(dataBase string, userID string) []UserShorts {
+func dbReadUserShorts(ctx context.Context, db *sql.DB, userID string) []UserShorts {
 
-	// ctx context.Context,
-	db, err := sql.Open("pgx", dataBase)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	// ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 
 	textQuery := `SELECT "Full", "Short" FROM urls WHERE "UserID" = $1`
-	rows, err := db.Query(textQuery, userID)
+	rows, err := db.QueryContext(ctx, textQuery, userID)
 	if err != nil {
 		log.Fatal(err)
 	}

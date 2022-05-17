@@ -37,11 +37,11 @@ type RequestURL struct {
 
 var urls = make(map[int]unitURL)
 
-func InitStorage(cfg config.Config) {
+func InitStorage(cfg *config.Config) {
 
 	if cfg.DataBase != "" {
-		// context.Background(),
-		if err := dbInit(cfg.DataBase); err != nil {
+
+		if err := dbInit(cfg); err != nil {
 			log.Fatal(err)
 		}
 	} else if cfg.FileStor != "" {
@@ -51,7 +51,7 @@ func InitStorage(cfg config.Config) {
 	}
 }
 
-func GetShortURL(urlToShort string, host string, cfg config.Config, userID string) (string, int) {
+func GetShortURL(ctx context.Context, urlToShort string, host string, cfg config.Config, userID string) (string, int) {
 
 	mu := &sync.Mutex{}
 	mu.Lock()
@@ -66,7 +66,7 @@ func GetShortURL(urlToShort string, host string, cfg config.Config, userID strin
 
 	if cfg.DataBase != "" {
 		// записать в базу данных
-		err := dbWrite(context.Background(), cfg.DataBase, &until)
+		err := dbWrite(ctx, cfg.ConnectDB, &until)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -87,7 +87,7 @@ func GetShortURL(urlToShort string, host string, cfg config.Config, userID strin
 	return until.Short, until.httpStatus
 }
 
-func ShortURLs(urls []RequestURL, host string, cfg config.Config, userID string) []responseURL {
+func ShortURLs(ctx context.Context, urls []RequestURL, host string, cfg config.Config, userID string) []responseURL {
 
 	mu := &sync.Mutex{}
 	mu.Lock()
@@ -109,14 +109,12 @@ func ShortURLs(urls []RequestURL, host string, cfg config.Config, userID string)
 	// если возникает ошибка, откатываем изменения
 	defer tx.Rollback()
 
-	ctx := context.Background()
-
 	// готовим инструкцию
 	stmt, err := tx.PrepareContext(ctx, `INSERT INTO urls ("ID", "Full", "Short", "UserID") VALUES ($1, $2, $3, $4)`)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// не забываем закрыть инструкцию, когда она больше не нужна
+
 	defer stmt.Close()
 
 	initialID, err := dbCountUrls(ctx, db)
@@ -155,7 +153,7 @@ func GetURL(ctx context.Context, idStr string, cfg config.Config) (url string, s
 
 	var fullURL string
 	if cfg.DataBase != "" {
-		full, err := dbReadURL(ctx, cfg.DataBase, id)
+		full, err := dbReadURL(ctx, cfg.ConnectDB, id)
 		if err != nil {
 			return "", err.Error()
 		}
@@ -175,7 +173,7 @@ func GetUserShorts(ctx context.Context, cfg config.Config, userID string) []User
 
 	var result []UserShorts
 	if cfg.DataBase != "" {
-		result = dbReadUserShorts(cfg.DataBase, userID)
+		result = dbReadUserShorts(ctx, cfg.ConnectDB, userID)
 	} else {
 		for _, UnitURL := range urls {
 			if UnitURL.UserID != userID {

@@ -27,9 +27,9 @@ func PostShort(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		userID := cookie.GetUserID(r)
+		userID := cookie.GetUserID(r, cfg)
 
-		responseURL, httpStatus := store.GetShortURL(urlToShort, r.Host, cfg, userID)
+		responseURL, httpStatus := store.GetShortURL(r.Context(), urlToShort, r.Host, cfg, userID)
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(httpStatus)
@@ -64,9 +64,9 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		userID := cookie.GetUserID(r)
+		userID := cookie.GetUserID(r, cfg)
 
-		responseURL, httpStatus := store.GetShortURL(valueIn.URL, r.Host, cfg, userID)
+		responseURL, httpStatus := store.GetShortURL(r.Context(), valueIn.URL, r.Host, cfg, userID)
 
 		type out struct {
 			Result string `json:"result"`
@@ -115,7 +115,7 @@ func GetShort(cfg config.Config) http.HandlerFunc {
 
 func GetUserShorts(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := cookie.GetUserID(r)
+		userID := cookie.GetUserID(r, cfg)
 
 		userShorts := store.GetUserShorts(r.Context(), cfg, userID)
 
@@ -139,7 +139,7 @@ func GetUserShorts(cfg config.Config) http.HandlerFunc {
 func GetPing(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		statusPing := store.PingDB(r.Context(), cfg.DataBase)
+		statusPing := store.PingDB(r.Context(), cfg)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(statusPing)
 		w.Write([]byte(""))
@@ -158,14 +158,14 @@ func PostBatch(cfg config.Config) http.HandlerFunc {
 		}
 
 		var v []store.RequestURL
-		userID := cookie.GetUserID(r)
+		userID := cookie.GetUserID(r, cfg)
 
 		if err := json.Unmarshal([]byte(body), &v); err != nil {
 			http.Error(w, "Batch unmarshal error", http.StatusBadRequest)
 			return
 		}
 
-		valueOut := store.ShortURLs(v, r.Host, cfg, userID)
+		valueOut := store.ShortURLs(r.Context(), v, r.Host, cfg, userID)
 
 		result, err := json.Marshal(valueOut)
 		if err != nil {

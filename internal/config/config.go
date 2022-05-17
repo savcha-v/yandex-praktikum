@@ -1,6 +1,7 @@
 package config
 
 import (
+	"database/sql"
 	"flag"
 	"log"
 
@@ -12,16 +13,15 @@ type Config struct {
 	BaseURL       string `env:"BASE_URL"`
 	FileStor      string `env:"FILE_STORAGE_PATH"`
 	DataBase      string `env:"DATABASE_DSN"`
+	ConnectDB     *sql.DB
+	Key           string
 }
 
 func NewConfig() Config {
 
 	var cfg Config
 
-	err := env.Parse(&cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	cfg.Key = "10c57de0"
 
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)

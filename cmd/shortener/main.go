@@ -16,7 +16,7 @@ func createServer(cfg config.Config) *http.Server {
 
 	r := chi.NewRouter()
 	r.Use(compress.CompressHandler)
-	r.Use(cookie.SetUserID)
+	r.Use(cookie.SetUserID(cfg))
 
 	r.Route("/", func(r chi.Router) {
 
@@ -39,9 +39,9 @@ func createServer(cfg config.Config) *http.Server {
 func main() {
 
 	cfg := config.NewConfig()
+	store.InitStorage(&cfg)
+	defer cfg.ConnectDB.Close()
 	server := createServer(cfg)
-	store.InitStorage(cfg)
-
 	log.Fatal(server.ListenAndServe())
 
 }
