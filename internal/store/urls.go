@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 	"strconv"
@@ -40,7 +39,6 @@ var urls = make(map[int]unitURL)
 func InitStorage(cfg *config.Config) {
 
 	if cfg.DataBase != "" {
-
 		if err := dbInit(cfg); err != nil {
 			log.Fatal(err)
 		}
@@ -95,11 +93,7 @@ func ShortURLs(ctx context.Context, urls []RequestURL, host string, cfg config.C
 
 	shortBase := "http://" + host + "/" + cfg.BaseURL + "/" + "?id="
 
-	db, err := sql.Open("pgx", cfg.DataBase)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+	db := cfg.ConnectDB
 
 	// объявляем транзакцию
 	tx, err := db.Begin()
