@@ -15,9 +15,8 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-func PingDB(ctx context.Context, cfg config.Config) int {
+func PingDB(ctx context.Context, db *sql.DB) int {
 
-	db := *cfg.ConnectDB
 	if err := db.PingContext(ctx); err != nil {
 		return http.StatusInternalServerError
 	}
