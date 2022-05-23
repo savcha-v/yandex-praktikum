@@ -202,6 +202,9 @@ func dbDeleteURLs(ctx context.Context, db *sql.DB, userID string, idList []strin
 	if err != nil {
 		log.Fatal(err)
 	}
+	if err := rows.Err(); err != nil {
+		log.Fatal(err)
+	}
 	defer rows.Close()
 
 }
