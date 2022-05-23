@@ -207,12 +207,6 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 
 		userID := cookie.GetUserID(r, cfg)
 		// store.DeleteURLs(r.Context(), cfg, userID, v)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusAccepted)
-		w.Write([]byte(""))
-		fmt.Fprint(w)
-
 		strDel := store.StructToDelete{
 			UserID: userID,
 			ListID: v,
@@ -230,5 +224,11 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 		for v := range store.FanInDel(deleteChan...) {
 			store.DeleteWorker(cfg.ConnectDB, v)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte(""))
+		fmt.Fprint(w)
+
 	}
 }
