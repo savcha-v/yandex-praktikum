@@ -11,6 +11,8 @@ import (
 	store "yandex-praktikum/internal/store"
 )
 
+var deleteChan = make([]chan store.StructToDelete, 0)
+
 func PostShort(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -105,8 +107,14 @@ func GetShort(cfg config.Config) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Add("Location", reternURL)
-		w.WriteHeader(http.StatusTemporaryRedirect)
+
+		if reternURL != "" {
+			w.Header().Add("Location", reternURL)
+			w.WriteHeader(http.StatusTemporaryRedirect)
+		} else {
+			w.WriteHeader(http.StatusGone)
+		}
+
 		w.Write([]byte(""))
 		fmt.Fprint(w)
 
@@ -177,5 +185,50 @@ func PostBatch(cfg config.Config) http.HandlerFunc {
 		w.WriteHeader(http.StatusCreated)
 		w.Write(result)
 		fmt.Fprint(w)
+	}
+}
+
+func DeleteURLs(cfg config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		body, err := io.ReadAll(r.Body)
+		defer r.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var v []string
+
+		if err := json.Unmarshal([]byte(body), &v); err != nil {
+			http.Error(w, "delete urls unmarshal error", http.StatusBadRequest)
+			return
+		}
+
+		userID := cookie.GetUserID(r, cfg)
+		// store.DeleteURLs(r.Context(), cfg, userID, v)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte(""))
+		fmt.Fprint(w)
+
+		strDel := store.StructToDelete{
+			UserID: userID,
+			ListID: v,
+		}
+
+		workerCh := make(chan store.StructToDelete)
+
+		go func() {
+			workerCh <- strDel
+			close(workerCh)
+		}()
+
+		deleteChan = append(deleteChan, workerCh)
+
+		for v := range store.FanInDel(deleteChan...) {
+			store.DeleteWorker(cfg.ConnectDB, v)
+		}
 	}
 }

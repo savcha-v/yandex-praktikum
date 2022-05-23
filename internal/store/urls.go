@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,6 +33,11 @@ type RequestURL struct {
 	Short  string
 	UserID string
 	UUID   string `json:"correlation_id,omitempty"`
+}
+
+type StructToDelete struct {
+	UserID string
+	ListID []string
 }
 
 var urls = make(map[int]unitURL)
@@ -181,4 +187,41 @@ func GetUserShorts(ctx context.Context, cfg config.Config, userID string) []User
 		}
 	}
 	return result
+}
+
+func DeleteURLs(ctx context.Context, cfg config.Config, userID string, idList []string) {
+
+	if cfg.DataBase != "" {
+		dbDeleteURLs(ctx, cfg.ConnectDB, userID, idList)
+	}
+}
+
+func FanInDel(inputChs ...chan StructToDelete) chan StructToDelete {
+	outCh := make(chan StructToDelete)
+
+	go func() {
+		wg := &sync.WaitGroup{}
+
+		for _, inputCh := range inputChs {
+			wg.Add(1)
+
+			go func(inputCh chan StructToDelete) {
+				defer wg.Done()
+				for item := range inputCh {
+					outCh <- item
+				}
+			}(inputCh)
+		}
+
+		wg.Wait()
+		close(outCh)
+	}()
+
+	return outCh
+}
+
+func DeleteWorker(db *sql.DB, strDel StructToDelete) {
+
+	dbDeleteURLs(context.Background(), db, strDel.UserID, strDel.ListID)
+
 }

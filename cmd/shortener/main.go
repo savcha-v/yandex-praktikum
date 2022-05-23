@@ -26,6 +26,7 @@ func createServer(cfg config.Config) *http.Server {
 		r.Get("/api/user/urls", handlers.GetUserShorts(cfg))
 		r.Get("/ping", handlers.GetPing(cfg))
 		r.Get("/"+cfg.BaseURL+"/", handlers.GetShort(cfg))
+		r.Delete("/api/user/urls", handlers.DeleteURLs(cfg))
 	})
 
 	server := http.Server{

@@ -33,8 +33,9 @@ func dbInit(cfg *config.Config) error {
 	textCreate := `CREATE TABLE IF NOT EXISTS urls(
 		"ID" INTEGER,
 		"Full" TEXT PRIMARY KEY,
-		  "Short" TEXT,
-		 "UserID" TEXT
+		"Short" TEXT,
+		"Remote" BOOL,
+		"UserID" TEXT
 		 );`
 	if _, err := db.Exec(textCreate); err != nil {
 		return err
@@ -83,9 +84,6 @@ func dbWrite(ctx context.Context, db *sql.DB, until *unitURL) error {
 func dbCountUrls(ctx context.Context, db *sql.DB) (int, error) {
 	var id int
 
-	// ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	// defer cancel()
-
 	row := db.QueryRowContext(ctx, "SELECT COUNT(*) as count FROM urls")
 	err := row.Scan(&id)
 	if err != nil {
@@ -100,16 +98,22 @@ func dbReadURL(ctx context.Context, db *sql.DB, id int) (string, error) {
 	defer cancel()
 
 	var fullID sql.NullString
+	var remoteLink sql.NullBool
 
-	textQuery := `SELECT "Full" FROM urls WHERE "ID" = $1`
-	err := db.QueryRowContext(ctx, textQuery, id).Scan(&fullID)
+	textQuery := `SELECT "Full", "Remote" FROM urls WHERE "ID" = $1`
+	err := db.QueryRowContext(ctx, textQuery, id).Scan(&fullID, &remoteLink)
 	if err != nil {
 		return "", err
+	}
+
+	if remoteLink.Valid && remoteLink.Bool {
+		return "", nil
 	}
 
 	if fullID.Valid {
 		return fullID.String, nil
 	}
+
 	return "", errors.New("id not found")
 }
 
@@ -161,4 +165,36 @@ func dbReadUserShorts(ctx context.Context, db *sql.DB, userID string) []UserShor
 	}
 
 	return result
+}
+
+func dbDeleteURLs(ctx context.Context, db *sql.DB, userID string, idList []string) {
+
+	textQuery := `UPDATE urls SET "Remote" = TRUE WHERE "UserID" = $1 AND "ID" IN`
+	textIn := ""
+
+	var values []interface{}
+	values = append(values, userID)
+
+	for i, v := range idList {
+
+		textIn = textIn + "$" + strconv.Itoa(i+2)
+		vInt, err := strconv.Atoi(v)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		values = append(values, vInt)
+
+		if i+1 != len(idList) {
+			textIn = textIn + ","
+		}
+	}
+
+	textIn = "(" + textIn + ")"
+	textQuery = textQuery + textIn
+	_, err := db.Query(textQuery, values...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
