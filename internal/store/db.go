@@ -175,16 +175,34 @@ func dbDeleteURLs(ctx context.Context, db *sql.DB, userID string, idList []strin
 	var values []interface{}
 	values = append(values, userID)
 
-	for i, v := range idList {
+	// for i, v := range idList {
 
-		textIn = textIn + "$" + strconv.Itoa(i+2)
+	// 	textIn = textIn + "$" + strconv.Itoa(i+2)
+	// 	vInt, err := strconv.Atoi(v)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+
+	// 	values = append(values, vInt)
+
+	// 	if i+1 != len(idList) {
+	// 		textIn = textIn + ","
+	// 	}
+	// }
+
+	n := 1
+	for i := 0; i < len(idList); i++ {
+		v := idList[i]
+		if v == "" {
+			continue
+		}
+		n++
+		textIn = textIn + "$" + strconv.Itoa(n)
 		vInt, err := strconv.Atoi(v)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		values = append(values, vInt)
-
 		if i+1 != len(idList) {
 			textIn = textIn + ","
 		}
@@ -192,9 +210,10 @@ func dbDeleteURLs(ctx context.Context, db *sql.DB, userID string, idList []strin
 
 	textIn = "(" + textIn + ")"
 	textQuery = textQuery + textIn
-	_, err := db.Query(textQuery, values...)
+	rows, err := db.Query(textQuery, values...)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer rows.Close()
 
 }
