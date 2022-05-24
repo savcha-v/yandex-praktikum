@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 	"yandex-praktikum/internal/config"
 
@@ -167,17 +168,18 @@ func dbReadUserShorts(ctx context.Context, db *sql.DB, userID string) []UserShor
 	return result
 }
 
-func dbDeleteURLs(ctx context.Context, db *sql.DB, strDel config.StructToDelete) {
+func dbDeleteURLs(ctx context.Context, db *sql.DB, strDel config.StructToDelete, baseURL string) {
 
 	textQuery := `UPDATE urls SET "Remote" = TRUE WHERE "UserID" = $1`
 	textIn := ""
-
+	baseURL = baseURL + "/" + "?id="
 	var values []interface{}
 	values = append(values, strDel.UserID)
 
 	n := 1
 	for i := 0; i < len(strDel.ListID); i++ {
 		v := strDel.ListID[i]
+		v = strings.Replace(v, baseURL, "", -1)
 		if v == "" {
 			continue
 		}
