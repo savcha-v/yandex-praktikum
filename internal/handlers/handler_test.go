@@ -123,7 +123,7 @@ func TestPostGet(t *testing.T) {
 		{
 			name:    "test endpoint DELETE",
 			method:  http.MethodDelete,
-			request: "/?id=1",
+			request: "?id=1",
 			want: Want{
 				code:     http.StatusBadRequest,
 				response: "'id' missing\n",
@@ -132,7 +132,7 @@ func TestPostGet(t *testing.T) {
 		{
 			name:    "test endpoint PUT",
 			method:  http.MethodPut,
-			request: "/?id=1",
+			request: "?id=1",
 			want: Want{
 				code:     http.StatusBadRequest,
 				response: "'id' missing\n",
@@ -141,7 +141,7 @@ func TestPostGet(t *testing.T) {
 		{
 			name:    "test endpoint PATCH",
 			method:  http.MethodPatch,
-			request: "/?id=1",
+			request: "?id=1",
 			want: Want{
 				code:     http.StatusBadRequest,
 				response: "'id' missing\n",
@@ -150,7 +150,7 @@ func TestPostGet(t *testing.T) {
 		{
 			name:    "test endpoint CONNECT",
 			method:  http.MethodConnect,
-			request: "/?id=1",
+			request: "?id=1",
 			want: Want{
 				code:     http.StatusBadRequest,
 				response: "'id' missing\n",
@@ -159,7 +159,7 @@ func TestPostGet(t *testing.T) {
 		{
 			name:    "test endpoint HEAD",
 			method:  http.MethodHead,
-			request: "/?id=1",
+			request: "?id=1",
 			want: Want{
 				code:     http.StatusBadRequest,
 				response: "'id' missing\n",
@@ -168,7 +168,7 @@ func TestPostGet(t *testing.T) {
 		{
 			name:    "test endpoint OPTIONS",
 			method:  http.MethodOptions,
-			request: "/?id=1",
+			request: "?id=1",
 			want: Want{
 				code:     http.StatusBadRequest,
 				response: "'id' missing\n",
@@ -177,7 +177,7 @@ func TestPostGet(t *testing.T) {
 		{
 			name:    "test endpoint TRACE",
 			method:  http.MethodTrace,
-			request: "/?id=1",
+			request: "?id=1",
 			want: Want{
 				code:     http.StatusBadRequest,
 				response: "'id' missing\n",
@@ -257,7 +257,7 @@ func TestPostShorten(t *testing.T) {
 	}
 
 	bodyRes := bodyResType{
-		Result: "http://example.com/" + cfg.BaseURL + "/?id=0",
+		Result: "http://example.com/" + cfg.BaseURL + "?id=0",
 	}
 
 	tests := []testStruct{
