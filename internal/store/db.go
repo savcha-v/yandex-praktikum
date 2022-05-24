@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -179,6 +181,7 @@ func dbDeleteURLs(ctx context.Context, db *sql.DB, strDel config.StructToDelete,
 	n := 1
 	for i := 0; i < len(strDel.ListID); i++ {
 		v := strDel.ListID[i]
+		fmt.Fprintln(os.Stdout, v)
 		v = strings.Replace(v, baseURL, "", -1)
 		if v == "" {
 			continue
