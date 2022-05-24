@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"yandex-praktikum/internal/config"
 	"yandex-praktikum/internal/cookie"
@@ -203,6 +204,9 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
+		for un := range v {
+			fmt.Fprintln(os.Stdout, un)
+		}
 		userID := cookie.GetUserID(r, cfg)
 		// store.DeleteURLs(r.Context(), cfg, userID, v)
 
