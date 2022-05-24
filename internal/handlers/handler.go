@@ -204,7 +204,7 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		for un := range v {
+		for _, un := range v {
 			fmt.Fprintln(os.Stdout, un)
 		}
 		userID := cookie.GetUserID(r, cfg)
