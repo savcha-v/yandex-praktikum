@@ -57,7 +57,7 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 
 		valueIn := in{}
 
-		if err := json.Unmarshal(body, &valueIn); err != nil {
+		if err := json.Unmarshal([]byte(body), &valueIn); err != nil {
 			http.Error(w, "Shorten unmarshal error", http.StatusBadRequest)
 			return
 		}
@@ -169,7 +169,7 @@ func PostBatch(cfg config.Config) http.HandlerFunc {
 		var v []store.RequestURL
 		userID := cookie.GetUserID(r, cfg)
 
-		if err := json.Unmarshal(body, &v); err != nil {
+		if err := json.Unmarshal([]byte(body), &v); err != nil {
 			http.Error(w, "Batch unmarshal error", http.StatusBadRequest)
 			return
 		}
@@ -203,7 +203,7 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 
 		var v []string
 
-		if err := json.Unmarshal(body, &v); err != nil {
+		if err := json.Unmarshal([]byte(body), &v); err != nil {
 			http.Error(w, "delete urls unmarshal error", http.StatusBadRequest)
 			return
 		}
