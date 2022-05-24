@@ -32,8 +32,7 @@ func PostShort(cfg config.Config) http.HandlerFunc {
 
 		responseURL, httpStatus := store.GetShortURL(r.Context(), urlToShort, r.Host, cfg, userID)
 
-		fmt.Fprintln(os.Stdout, "PostShort")
-		fmt.Fprintln(os.Stdout, responseURL)
+		fmt.Fprintln(os.Stdout, "PostShort: "+responseURL)
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(httpStatus)
@@ -177,10 +176,6 @@ func PostBatch(cfg config.Config) http.HandlerFunc {
 
 		valueOut := store.ShortURLs(r.Context(), v, r.Host, cfg, userID)
 
-		for _, un := range valueOut {
-			fmt.Fprintln(os.Stdout, un.Short)
-		}
-
 		result, err := json.Marshal(valueOut)
 		if err != nil {
 			http.Error(w, "Shorten marshal error", http.StatusBadRequest)
@@ -204,6 +199,8 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
+		fmt.Fprintln(os.Stdout, "DeleteURLs body: "+string(body[:]))
+
 		var v []string
 
 		if err := json.Unmarshal(body, &v); err != nil {
@@ -214,6 +211,7 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 		for _, un := range v {
 			fmt.Fprintln(os.Stdout, un)
 		}
+
 		userID := cookie.GetUserID(r, cfg)
 
 		strDel := config.StructToDelete{

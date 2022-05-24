@@ -2,10 +2,8 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"sync"
 	"yandex-praktikum/internal/config"
@@ -133,7 +131,6 @@ func ShortURLs(ctx context.Context, urls []RequestURL, host string, cfg config.C
 		if _, err = stmt.ExecContext(ctx, nextID, url.Full, short, userID); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Fprintln(os.Stdout, short)
 
 		res := responseURL{
 			UUID:  url.UUID,
