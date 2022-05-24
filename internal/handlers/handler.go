@@ -11,8 +11,6 @@ import (
 	store "yandex-praktikum/internal/store"
 )
 
-var deleteChan = make([]chan store.StructToDelete, 0)
-
 func PostShort(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -207,23 +205,15 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 
 		userID := cookie.GetUserID(r, cfg)
 		// store.DeleteURLs(r.Context(), cfg, userID, v)
-		strDel := store.StructToDelete{
+
+		strDel := config.StructToDelete{
 			UserID: userID,
 			ListID: v,
 		}
 
-		workerCh := make(chan store.StructToDelete)
-
 		go func() {
-			workerCh <- strDel
-			close(workerCh)
+			cfg.DeleteChan <- strDel
 		}()
-
-		deleteChan = append(deleteChan, workerCh)
-
-		for v := range store.FanInDel(deleteChan...) {
-			store.DeleteWorker(cfg.ConnectDB, v)
-		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusAccepted)

@@ -167,17 +167,17 @@ func dbReadUserShorts(ctx context.Context, db *sql.DB, userID string) []UserShor
 	return result
 }
 
-func dbDeleteURLs(ctx context.Context, db *sql.DB, userID string, idList []string) {
+func dbDeleteURLs(ctx context.Context, db *sql.DB, strDel config.StructToDelete) {
 
 	textQuery := `UPDATE urls SET "Remote" = TRUE WHERE "UserID" = $1`
 	textIn := ""
 
 	var values []interface{}
-	values = append(values, userID)
+	values = append(values, strDel.UserID)
 
 	n := 1
-	for i := 0; i < len(idList); i++ {
-		v := idList[i]
+	for i := 0; i < len(strDel.ListID); i++ {
+		v := strDel.ListID[i]
 		if v == "" {
 			continue
 		}
@@ -188,7 +188,7 @@ func dbDeleteURLs(ctx context.Context, db *sql.DB, userID string, idList []strin
 			log.Fatal(err)
 		}
 		values = append(values, vInt)
-		if i+1 != len(idList) {
+		if i+1 != len(strDel.ListID) {
 			textIn = textIn + ","
 		}
 	}

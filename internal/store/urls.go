@@ -2,12 +2,11 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 	"strconv"
 	"sync"
-	config "yandex-praktikum/internal/config"
+	"yandex-praktikum/internal/config"
 )
 
 type unitURL struct {
@@ -35,11 +34,6 @@ type RequestURL struct {
 	UUID   string `json:"correlation_id,omitempty"`
 }
 
-type StructToDelete struct {
-	UserID string
-	ListID []string
-}
-
 var urls = make(map[int]unitURL)
 
 func InitStorage(cfg *config.Config) {
@@ -48,11 +42,18 @@ func InitStorage(cfg *config.Config) {
 		if err := dbInit(cfg); err != nil {
 			log.Fatal(err)
 		}
+
+		go func() {
+			for strDel := range cfg.DeleteChan {
+				dbDeleteURLs(context.Background(), cfg.ConnectDB, strDel)
+			}
+		}()
 	} else if cfg.FileStor != "" {
 		if err := fileInit(cfg.FileStor); err != nil {
 			log.Fatal(err)
 		}
 	}
+
 }
 
 func GetShortURL(ctx context.Context, urlToShort string, host string, cfg config.Config, userID string) (string, int) {
@@ -189,39 +190,33 @@ func GetUserShorts(ctx context.Context, cfg config.Config, userID string) []User
 	return result
 }
 
-func DeleteURLs(ctx context.Context, cfg config.Config, userID string, idList []string) {
+// func DeleteURLs(ctx context.Context, cfg config.Config, userID string, idList []string) {
 
-	if cfg.DataBase != "" {
-		dbDeleteURLs(ctx, cfg.ConnectDB, userID, idList)
-	}
-}
+// 	if cfg.DataBase != "" {
+// 		dbDeleteURLs(ctx, cfg.ConnectDB, userID, idList)
+// 	}
+// }
 
-func FanInDel(inputChs ...chan StructToDelete) chan StructToDelete {
-	outCh := make(chan StructToDelete)
+// func FanInDel(inputChs ...chan StructToDelete) chan StructToDelete {
+// 	outCh := make(chan StructToDelete)
 
-	go func() {
-		wg := &sync.WaitGroup{}
+// 	go func() {
+// 		wg := &sync.WaitGroup{}
 
-		for _, inputCh := range inputChs {
-			wg.Add(1)
+// 		for _, inputCh := range inputChs {
+// 			wg.Add(1)
 
-			go func(inputCh chan StructToDelete) {
-				defer wg.Done()
-				for item := range inputCh {
-					outCh <- item
-				}
-			}(inputCh)
-		}
+// 			go func(inputCh chan StructToDelete) {
+// 				defer wg.Done()
+// 				for item := range inputCh {
+// 					outCh <- item
+// 				}
+// 			}(inputCh)
+// 		}
 
-		wg.Wait()
-		close(outCh)
-	}()
+// 		wg.Wait()
+// 		close(outCh)
+// 	}()
 
-	return outCh
-}
-
-func DeleteWorker(db *sql.DB, strDel StructToDelete) {
-
-	dbDeleteURLs(context.Background(), db, strDel.UserID, strDel.ListID)
-
-}
+// 	return outCh
+// }

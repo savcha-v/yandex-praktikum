@@ -15,6 +15,12 @@ type Config struct {
 	DataBase      string `env:"DATABASE_DSN"`
 	ConnectDB     *sql.DB
 	Key           string
+	DeleteChan    chan StructToDelete
+}
+
+type StructToDelete struct {
+	UserID string
+	ListID []string
 }
 
 func NewConfig() Config {
@@ -33,6 +39,8 @@ func NewConfig() Config {
 	flag.StringVar(&cfg.DataBase, "d", cfg.DataBase, "")
 
 	flag.Parse()
+
+	cfg.DeleteChan = make(chan StructToDelete, 10)
 
 	return cfg
 }

@@ -42,6 +42,7 @@ func main() {
 	cfg := config.NewConfig()
 	store.InitStorage(&cfg)
 	defer cfg.ConnectDB.Close()
+	defer close(cfg.DeleteChan)
 	server := createServer(cfg)
 	log.Fatal(server.ListenAndServe())
 
