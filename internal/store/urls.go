@@ -66,7 +66,7 @@ func GetShortURL(ctx context.Context, urlToShort string, host string, cfg config
 
 	until := unitURL{
 		Full:       urlToShort,
-		Short:      "http://" + host + "/" + cfg.BaseURL + "/" + "?id=",
+		Short:      "http://" + host + "/" + cfg.BaseURL + "?id=",
 		UserID:     userID,
 		httpStatus: http.StatusCreated,
 	}
