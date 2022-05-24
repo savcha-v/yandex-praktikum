@@ -174,6 +174,10 @@ func PostBatch(cfg config.Config) http.HandlerFunc {
 
 		valueOut := store.ShortURLs(r.Context(), v, r.Host, cfg, userID)
 
+		for _, un := range valueOut {
+			fmt.Fprintln(os.Stdout, un.Short)
+		}
+
 		result, err := json.Marshal(valueOut)
 		if err != nil {
 			http.Error(w, "Shorten marshal error", http.StatusBadRequest)
@@ -208,7 +212,6 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 			fmt.Fprintln(os.Stdout, un)
 		}
 		userID := cookie.GetUserID(r, cfg)
-		// store.DeleteURLs(r.Context(), cfg, userID, v)
 
 		strDel := config.StructToDelete{
 			UserID: userID,
