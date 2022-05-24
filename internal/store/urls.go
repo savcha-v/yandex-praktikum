@@ -100,7 +100,7 @@ func ShortURLs(ctx context.Context, urls []RequestURL, host string, cfg config.C
 	mu.Lock()
 	defer mu.Unlock()
 
-	shortBase := "http://" + host + "/" + cfg.BaseURL + "/" + "?id="
+	shortBase := "http://" + host + "/" + cfg.BaseURL + "?id="
 
 	db := cfg.ConnectDB
 

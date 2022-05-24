@@ -72,9 +72,6 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 
 		responseURL, httpStatus := store.GetShortURL(r.Context(), valueIn.URL, r.Host, cfg, userID)
 
-		fmt.Fprintln(os.Stdout, "PostShorten")
-		fmt.Fprintln(os.Stdout, responseURL)
-
 		type out struct {
 			Result string `json:"result"`
 		}

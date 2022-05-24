@@ -174,7 +174,7 @@ func dbDeleteURLs(ctx context.Context, db *sql.DB, strDel config.StructToDelete,
 
 	textQuery := `UPDATE urls SET "Remote" = TRUE WHERE "UserID" = $1`
 	textIn := ""
-	baseURL = baseURL + "/" + "?id="
+	baseURL = baseURL + "?id="
 	var values []interface{}
 	values = append(values, strDel.UserID)
 
