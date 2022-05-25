@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"yandex-praktikum/internal/config"
 	"yandex-praktikum/internal/cookie"
@@ -57,7 +58,7 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 
 		valueIn := in{}
 
-		if err := json.Unmarshal([]byte(body), &valueIn); err != nil {
+		if err := json.Unmarshal(body, &valueIn); err != nil {
 			http.Error(w, "Shorten unmarshal error", http.StatusBadRequest)
 			return
 		}
@@ -95,11 +96,12 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 func GetShort(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		id := r.URL.Query().Get("id")
-		if id == "" {
-			http.Error(w, "'id' missing", http.StatusBadRequest)
-			return
-		}
+		// id := r.URL.Query().Get("id")
+		// if id == "" {
+		// 	http.Error(w, "'id' missing", http.StatusBadRequest)
+		// 	return
+		// }
+		id := strings.Replace(r.RequestURI, "/"+cfg.BaseURL, "", -1)
 
 		reternURL, err := store.GetURL(r.Context(), id, cfg)
 		if err != "" {
@@ -169,7 +171,7 @@ func PostBatch(cfg config.Config) http.HandlerFunc {
 		var v []store.RequestURL
 		userID := cookie.GetUserID(r, cfg)
 
-		if err := json.Unmarshal([]byte(body), &v); err != nil {
+		if err := json.Unmarshal(body, &v); err != nil {
 			http.Error(w, "Batch unmarshal error", http.StatusBadRequest)
 			return
 		}
@@ -203,7 +205,7 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 
 		var v []string
 
-		if err := json.Unmarshal([]byte(body), &v); err != nil {
+		if err := json.Unmarshal(body, &v); err != nil {
 			http.Error(w, "delete urls unmarshal error", http.StatusBadRequest)
 			return
 		}

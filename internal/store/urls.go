@@ -64,7 +64,7 @@ func GetShortURL(ctx context.Context, urlToShort string, host string, cfg config
 
 	until := unitURL{
 		Full:       urlToShort,
-		Short:      "http://" + host + "/" + cfg.BaseURL + "?id=",
+		Short:      "http://" + host + "/" + cfg.BaseURL,
 		UserID:     userID,
 		httpStatus: http.StatusCreated,
 	}
@@ -98,7 +98,7 @@ func ShortURLs(ctx context.Context, urls []RequestURL, host string, cfg config.C
 	mu.Lock()
 	defer mu.Unlock()
 
-	shortBase := "http://" + host + "/" + cfg.BaseURL + "?id="
+	shortBase := "http://" + host + "/" + cfg.BaseURL
 
 	db := cfg.ConnectDB
 
@@ -189,34 +189,3 @@ func GetUserShorts(ctx context.Context, cfg config.Config, userID string) []User
 	}
 	return result
 }
-
-// func DeleteURLs(ctx context.Context, cfg config.Config, userID string, idList []string) {
-
-// 	if cfg.DataBase != "" {
-// 		dbDeleteURLs(ctx, cfg.ConnectDB, userID, idList)
-// 	}
-// }
-
-// func FanInDel(inputChs ...chan StructToDelete) chan StructToDelete {
-// 	outCh := make(chan StructToDelete)
-
-// 	go func() {
-// 		wg := &sync.WaitGroup{}
-
-// 		for _, inputCh := range inputChs {
-// 			wg.Add(1)
-
-// 			go func(inputCh chan StructToDelete) {
-// 				defer wg.Done()
-// 				for item := range inputCh {
-// 					outCh <- item
-// 				}
-// 			}(inputCh)
-// 		}
-
-// 		wg.Wait()
-// 		close(outCh)
-// 	}()
-
-// 	return outCh
-// }
