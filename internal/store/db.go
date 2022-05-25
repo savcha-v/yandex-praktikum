@@ -4,12 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 	"yandex-praktikum/internal/config"
 
@@ -170,32 +167,35 @@ func dbReadUserShorts(ctx context.Context, db *sql.DB, userID string) []UserShor
 	return result
 }
 
-func dbDeleteURLs(ctx context.Context, db *sql.DB, strDel config.StructToDelete, baseURL string) {
+func dbDeleteURLs(ctx context.Context, db *sql.DB, strDel config.StructToDelete) {
 
 	textQuery := `UPDATE urls SET "Remote" = TRUE WHERE "UserID" = $1`
 	textIn := ""
-	baseURL = baseURL + "?id="
+
 	var values []interface{}
 	values = append(values, strDel.UserID)
 
 	n := 1
 	for i := 0; i < len(strDel.ListID); i++ {
 		v := strDel.ListID[i]
-		fmt.Fprintln(os.Stdout, v)
-		v = strings.Replace(v, baseURL, "", -1)
 		if v == "" {
 			continue
 		}
 		n++
+
+		// text
 		textIn = textIn + "$" + strconv.Itoa(n)
+		if i+1 != len(strDel.ListID) {
+			textIn = textIn + ","
+		}
+
+		// params
 		vInt, err := strconv.Atoi(v)
 		if err != nil {
 			log.Fatal(err)
 		}
 		values = append(values, vInt)
-		if i+1 != len(strDel.ListID) {
-			textIn = textIn + ","
-		}
+
 	}
 
 	if n == 1 {

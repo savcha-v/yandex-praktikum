@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"yandex-praktikum/internal/config"
 	"yandex-praktikum/internal/cookie"
@@ -31,10 +30,7 @@ func PostShort(cfg config.Config) http.HandlerFunc {
 		}
 
 		userID := cookie.GetUserID(r, cfg)
-
 		responseURL, httpStatus := store.GetShortURL(r.Context(), urlToShort, r.Host, cfg, userID)
-
-		fmt.Fprintln(os.Stdout, "PostShort: "+responseURL)
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(httpStatus)
@@ -202,17 +198,11 @@ func DeleteURLs(cfg config.Config) http.HandlerFunc {
 			return
 		}
 
-		fmt.Fprintln(os.Stdout, "DeleteURLs body: "+string(body[:]))
-
 		var v []string
 
 		if err := json.Unmarshal(body, &v); err != nil {
 			http.Error(w, "delete urls unmarshal error", http.StatusBadRequest)
 			return
-		}
-
-		for _, un := range v {
-			fmt.Fprintln(os.Stdout, un)
 		}
 
 		userID := cookie.GetUserID(r, cfg)

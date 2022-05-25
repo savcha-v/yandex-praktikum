@@ -45,7 +45,7 @@ func InitStorage(cfg *config.Config) {
 
 		go func() {
 			for strDel := range cfg.DeleteChan {
-				dbDeleteURLs(context.Background(), cfg.ConnectDB, strDel, cfg.BaseURL)
+				dbDeleteURLs(context.Background(), cfg.ConnectDB, strDel)
 			}
 		}()
 	} else if cfg.FileStor != "" {
