@@ -6,11 +6,12 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 
 	"yandex-praktikum/internal/config"
 	"yandex-praktikum/internal/cookie"
 	store "yandex-praktikum/internal/store"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func PostShort(cfg config.Config) http.HandlerFunc {
@@ -96,12 +97,12 @@ func PostShorten(cfg config.Config) http.HandlerFunc {
 func GetShort(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// id := r.URL.Query().Get("id")
-		// if id == "" {
-		// 	http.Error(w, "'id' missing", http.StatusBadRequest)
-		// 	return
-		// }
-		id := strings.Replace(r.RequestURI, "/"+cfg.BaseURL, "", -1)
+		id := chi.URLParam(r, "id")
+
+		if id == "" {
+			http.Error(w, "'id' missing", http.StatusBadRequest)
+			return
+		}
 
 		reternURL, err := store.GetURL(r.Context(), id, cfg)
 		if err != "" {

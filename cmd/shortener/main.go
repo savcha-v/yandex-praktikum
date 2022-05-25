@@ -25,7 +25,7 @@ func createServer(cfg config.Config) *http.Server {
 		r.Post("/api/shorten/batch", handlers.PostBatch(cfg))
 		r.Get("/api/user/urls", handlers.GetUserShorts(cfg))
 		r.Get("/ping", handlers.GetPing(cfg))
-		r.Get("/"+cfg.BaseURL, handlers.GetShort(cfg))
+		r.Get("/"+cfg.BaseURL+"{id}", handlers.GetShort(cfg))
 		r.Delete("/api/user/urls", handlers.DeleteURLs(cfg))
 	})
 
